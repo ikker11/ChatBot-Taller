@@ -24,7 +24,7 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
+      - 
 
       - name: Probar el bot y compilar el APK
         working-directory: proyecto/the-mechanic-bot
