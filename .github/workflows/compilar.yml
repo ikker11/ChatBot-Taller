@@ -1,0 +1,45 @@
+name: Compilar APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descomprimir el proyecto
+        run: |
+          ZIP=$(ls *.zip 2>/dev/null | head -1)
+          if [ -z "$ZIP" ]; then echo "Sube primero el archivo .zip del proyecto"; exit 1; fi
+          unzip -q -o "$ZIP" -d proyecto
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Probar el bot y compilar el APK
+        working-directory: proyecto/the-mechanic-bot
+        run: |
+          chmod +x gradlew
+          ./gradlew testDebugUnitTest assembleDebug --no-daemon --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/TheMechanicBot.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ChatBot-Taller-APK
+          path: TheMechanicBot.apk
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: ChatBot-Taller v1.0.${{ github.run_number }}
+          files: TheMechanicBot.apk
